@@ -26,6 +26,8 @@
   .pill { padding: 9px 14px; border-radius: 10px; font-size: 13px; font-weight: 600; text-decoration: none;
           background: var(--panel); border: 1px solid var(--border); color: var(--text); display: inline-block; }
   .pill:hover { border-color: var(--accent); }
+  .pill.active { border-color: var(--accent); color: var(--accent); }
+  .menu { display: flex; gap: 8px; flex-wrap: wrap; }
   .lead { color: var(--muted); font-size: 14px; margin: 4px 0 26px; max-width: 720px; line-height: 1.6; }
 
   .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 16px; }
@@ -60,7 +62,11 @@
         <small>Open each provider's portal to verify usage &amp; billing</small>
       </div>
     </div>
-    <a class="pill" href="/">← Back to dashboard</a>
+    <nav class="menu">
+      <a class="pill" href="/">📊 Dashboard</a>
+      <a class="pill active" href="/checks">🔎 Manual checks</a>
+      <a class="pill" href="/compare">⚖️ Compare</a>
+    </nav>
   </header>
 
   <p class="lead">

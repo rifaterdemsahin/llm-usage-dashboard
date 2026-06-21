@@ -86,8 +86,10 @@
   .pill {
     padding: 9px 14px; border-radius: 10px; font-size: 13px; font-weight: 600;
     background: var(--panel); border: 1px solid var(--border); color: var(--text);
+    text-decoration: none; display: inline-block; cursor: pointer;
   }
   .pill:hover { border-color: var(--accent); }
+  .pill.active { border-color: var(--accent); color: var(--accent); }
 
   .cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 16px; margin-bottom: 22px; }
   .card {
@@ -180,9 +182,10 @@
       </div>
     </div>
     <div class="top-actions">
+      <a class="pill active" href="/">📊 Dashboard</a>
+      <a class="pill" href="/checks">🔎 Manual checks</a>
+      <a class="pill" href="/compare">⚖️ Compare</a>
       <button class="pill" id="refreshBtn">↻ Refresh</button>
-      <a class="pill" href="/checks" style="text-decoration:none;">🔎 Manual checks</a>
-      <a class="pill" href="/compare" style="text-decoration:none;">⚖️ Compare</a>
       <button class="pill" id="guideBtn">❔ Guide</button>
       <button class="pill" id="settingsBtn">⚙ Settings</button>
       <button class="pill" id="logoutBtn">Sign out</button>
@@ -436,6 +439,7 @@ async function showApp(user){
   $('welcome').textContent = 'Signed in as ' + user;
   await pullData();   // load settings from MongoDB Atlas
   renderAll();
+  refresh();          // auto-pull live usage, cache to MongoDB, then re-render
 }
 
 function totals(d){
