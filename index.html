@@ -120,6 +120,14 @@
   th { color: var(--muted); font-weight: 500; font-size: 12px; }
   td.num { text-align: right; font-variant-numeric: tabular-nums; }
 
+  .app-footer { display: flex; align-items: center; flex-wrap: wrap; gap: 10px;
+    margin-top: 26px; padding-top: 18px; border-top: 1px solid var(--border);
+    color: var(--muted); font-size: 13px; }
+  .app-footer a { color: var(--accent); text-decoration: none; }
+  .app-footer a:hover { text-decoration: underline; }
+  .app-footer img { display: block; height: 20px; }
+  .app-footer .sep { color: var(--border); }
+
   /* ---------- Modal ---------- */
   .modal-backdrop {
     position: fixed; inset: 0; background: rgba(0,0,0,.55);
@@ -211,6 +219,18 @@
       </table>
     </div>
   </section>
+
+  <footer class="app-footer">
+    <a href="https://github.com/rifaterdemsahin/llm-usage-dashboard/actions/workflows/fly-deploy.yml" target="_blank" rel="noopener">
+      <img src="https://github.com/rifaterdemsahin/llm-usage-dashboard/actions/workflows/fly-deploy.yml/badge.svg" alt="Deploy to Fly.io" />
+    </a>
+    <span class="sep">·</span>
+    <a href="https://github.com/rifaterdemsahin/llm-usage-dashboard" target="_blank" rel="noopener">⌨ GitHub repo</a>
+    <span class="sep">·</span>
+    <a href="/checks">Manual checks</a>
+    <span class="sep">·</span>
+    <a href="/compare">Compare</a>
+  </footer>
 </div>
 
 <!-- ======== GUIDE MODAL ======== -->
