@@ -155,8 +155,8 @@
     <button class="btn" id="loginBtn">Sign in</button>
     <div class="err" id="loginErr"></div>
     <div class="hint">
-      First time? Any username + a password of <b>4+ characters</b> creates a local account.
-      Credentials &amp; keys are stored only in this browser (localStorage).
+      Sign in with your dashboard credentials. A secure session cookie keeps you
+      signed in, so you won't be asked again on this browser.
     </div>
   </div>
 </div>
@@ -173,6 +173,7 @@
     </div>
     <div class="top-actions">
       <button class="pill" id="refreshBtn">↻ Refresh</button>
+      <button class="pill" id="guideBtn">❔ Guide</button>
       <button class="pill" id="settingsBtn">⚙ Settings</button>
       <button class="pill" id="logoutBtn">Sign out</button>
     </div>
@@ -208,6 +209,53 @@
       </table>
     </div>
   </section>
+</div>
+
+<!-- ======== GUIDE MODAL ======== -->
+<div class="modal-backdrop" id="guideModal">
+  <div class="modal">
+    <h2>How to collect your usage numbers</h2>
+    <p class="desc">
+      The dashboard shows <b>cost</b>, <b>requests</b>, and <b>tokens</b> per provider.
+      Here's where to get each one. Enter them under <b>⚙ Settings</b> — values are saved to
+      MongoDB Atlas and cached so the same query isn't sent repeatedly.
+    </p>
+
+    <div class="prov-block">
+      <div class="head"><span class="dot" style="background:var(--openrouter)"></span> OpenRouter <small>live (automatic)</small></div>
+      <small>
+        1. Go to <b>openrouter.ai → Settings → Keys</b> and create an API key (<code>sk-or-...</code>).<br>
+        2. Paste it into Settings → OpenRouter. The backend calls
+        <code>GET /api/v1/key</code> to pull your <b>credits used</b> automatically.<br>
+        3. For requests/tokens, see <b>openrouter.ai/activity</b> and enter them as the manual fallback.
+      </small>
+    </div>
+
+    <div class="prov-block">
+      <div class="head"><span class="dot" style="background:var(--claude)"></span> Claude (Anthropic) <small>manual</small></div>
+      <small>
+        1. Open the <b>Anthropic Console → Usage / Cost</b> (or <b>Billing</b>).<br>
+        2. Read your <b>cost ($)</b>, <b>requests</b>, and <b>input+output tokens</b> for the period.<br>
+        3. Enter them in Settings → Claude. (Anthropic's usage API needs an Admin key and
+        can't be called from the browser, so these are entered manually.)
+      </small>
+    </div>
+
+    <div class="prov-block">
+      <div class="head"><span class="dot" style="background:var(--gemini)"></span> Gemini (Google) <small>manual</small></div>
+      <small>
+        1. In <b>Google AI Studio</b> or <b>Google Cloud Console → Billing / APIs &amp; Services</b>,
+        open the Generative Language API metrics.<br>
+        2. Read your <b>cost ($)</b>, <b>request count</b>, and <b>token count</b>.<br>
+        3. Enter them in Settings → Gemini.
+      </small>
+    </div>
+
+    <div class="modal-actions">
+      <button class="btn" id="guideToSettings" style="margin-top:0;">Open Settings</button>
+      <button class="btn secondary" id="closeGuide" style="margin-top:0;">Close</button>
+    </div>
+  </div>
 </div>
 
 <!-- ======== SETTINGS MODAL ======== -->
@@ -265,8 +313,6 @@
    ========================================================= */
 
 const LS = {
-  user: 'llmdash.user',
-  session: 'llmdash.session',
   data: 'llmdash.data',
 };
 
@@ -297,38 +343,62 @@ function loadData(){
   try { return Object.assign(emptyData(), JSON.parse(localStorage.getItem(LS.data) || '{}')); }
   catch { return emptyData(); }
 }
-function saveData(d){ localStorage.setItem(LS.data, JSON.stringify(d)); }
-
-/* =========================================================
-   AUTH (local-only)
-   ========================================================= */
-function currentUser(){
-  return sessionStorage.getItem(LS.session) || localStorage.getItem(LS.session);
+// saveData writes to a local cache AND syncs to MongoDB Atlas via the backend.
+function saveData(d){
+  localStorage.setItem(LS.data, JSON.stringify(d));
+  pushData(d);
+}
+async function pushData(d){
+  try {
+    await fetch('/api/settings', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(d),
+    });
+  } catch {}
+}
+// pullData loads the user's settings from Atlas into the local cache.
+async function pullData(){
+  try {
+    const res = await fetch('/api/settings');
+    if (!res.ok) return;
+    const j = await res.json();
+    if (j && Object.keys(j).length) {
+      localStorage.setItem(LS.data, JSON.stringify(Object.assign(emptyData(), j)));
+    }
+  } catch {}
 }
 
-function doLogin(){
+/* =========================================================
+   AUTH (server-backed; HttpOnly signed cookie)
+   Credentials are verified by the Go backend against Fly secrets.
+   ========================================================= */
+async function doLogin(){
   const user = $('loginUser').value.trim();
   const pass = $('loginPass').value;
   const err = $('loginErr');
   err.textContent = '';
-  if (!user) { err.textContent = 'Enter a username.'; return; }
-  if (pass.length < 4) { err.textContent = 'Password must be at least 4 characters.'; return; }
+  if (!user || !pass) { err.textContent = 'Enter username and password.'; return; }
 
-  const stored = JSON.parse(localStorage.getItem(LS.user) || 'null');
-  const hash = btoa(user + ':' + pass); // NB: obfuscation only, not real security
-  if (!stored) {
-    localStorage.setItem(LS.user, JSON.stringify({ user, hash }));
-  } else if (stored.user !== user || stored.hash !== hash) {
-    err.textContent = 'Invalid credentials for an existing account.';
-    return;
+  $('loginBtn').disabled = true;
+  try {
+    const res = await fetch('/api/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ user, pass }),
+    });
+    if (!res.ok) { err.textContent = 'Invalid credentials.'; return; }
+    const j = await res.json();
+    $('loginPass').value = '';
+    showApp(j.user);
+  } catch (e) {
+    err.textContent = 'Login failed: ' + e.message;
+  } finally {
+    $('loginBtn').disabled = false;
   }
-  sessionStorage.setItem(LS.session, user);
-  showApp(user);
 }
 
-function logout(){
-  sessionStorage.removeItem(LS.session);
-  localStorage.removeItem(LS.session);
+async function logout(){
+  try { await fetch('/api/logout', { method: 'POST' }); } catch {}
   $('app').style.display = 'none';
   $('login').style.display = 'flex';
 }
@@ -338,10 +408,11 @@ function logout(){
    ========================================================= */
 let charts = {};
 
-function showApp(user){
+async function showApp(user){
   $('login').style.display = 'none';
   $('app').style.display = 'block';
   $('welcome').textContent = 'Signed in as ' + user;
+  await pullData();   // load settings from MongoDB Atlas
   renderAll();
 }
 
@@ -545,20 +616,23 @@ async function testOpenRouter(){
   }
 }
 
-// Refresh button: re-pull OpenRouter live if a key is saved
+// Refresh button: pull live usage server-side (uses credentials stored in Atlas).
 async function refresh(){
   const d = loadData();
   const btn = $('refreshBtn'); const old = btn.textContent; btn.textContent = '…';
-  if (d.keys.openrouter){
-    try {
-      const r = await fetchOpenRouter(d.keys.openrouter);
-      d.openrouter.cost = r.cost;
-      d.openrouter.live = true;
-      d.openrouter.series = spread(r.cost);
-      d.updated = new Date().toISOString();
-      saveData(d);
-    } catch(e){ /* keep manual values on failure */ }
-  }
+  try {
+    const r = await fetch('/api/usage');
+    if (r.ok){
+      const j = await r.json();
+      if (j.openrouter && typeof j.openrouter.cost === 'number'){
+        d.openrouter.cost = j.openrouter.cost;
+        d.openrouter.live = true;
+        d.openrouter.series = spread(j.openrouter.cost);
+        d.updated = new Date().toISOString();
+        saveData(d);
+      }
+    }
+  } catch(e){ /* keep existing values on failure */ }
   renderAll();
   btn.textContent = old;
 }
@@ -589,10 +663,18 @@ $('loadDemo').addEventListener('click', loadDemo);
 $('orTest').addEventListener('click', testOpenRouter);
 $('modal').addEventListener('click', e => { if (e.target.id === 'modal') closeSettings(); });
 
-// Auto-login if there's an active session
-(function init(){
-  const u = currentUser();
-  if (u) showApp(u);
+// Guide modal
+$('guideBtn').addEventListener('click', () => $('guideModal').style.display = 'flex');
+$('closeGuide').addEventListener('click', () => $('guideModal').style.display = 'none');
+$('guideToSettings').addEventListener('click', () => { $('guideModal').style.display = 'none'; openSettings(); });
+$('guideModal').addEventListener('click', e => { if (e.target.id === 'guideModal') $('guideModal').style.display = 'none'; });
+
+// Auto-login if the session cookie is still valid (server checks it)
+(async function init(){
+  try {
+    const res = await fetch('/api/me');
+    if (res.ok) { const j = await res.json(); showApp(j.user); }
+  } catch {}
 })();
 </script>
 </body>
