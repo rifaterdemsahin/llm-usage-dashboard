@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Model Comparison · LLM Usage Dashboard</title>
+<style>
+  :root {
+    --bg: #0b0f17; --panel: #141a26; --panel-2: #1b2230; --border: #263043;
+    --text: #e6ebf2; --muted: #8a97ad; --accent: #5b8cff;
+    --glm: #16a34a; --gemini: #4285f4; --claude: #d97757; --deepseek: #6366f1; --radius: 14px;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; min-height: 100vh; color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    background: radial-gradient(1200px 800px at 80% -10%, #1a2238 0%, var(--bg) 55%);
+  }
+  .wrap { max-width: 1280px; margin: 0 auto; padding: 22px 22px 60px; }
+  header.top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; gap: 14px; flex-wrap: wrap; }
+  .brand { display: flex; align-items: center; gap: 12px; }
+  .logo { width: 38px; height: 38px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 20px;
+          background: linear-gradient(135deg, var(--accent), var(--deepseek)); }
+  .brand h1 { font-size: 18px; margin: 0; }
+  .brand small { color: var(--muted); font-size: 12px; }
+  .pill { padding: 9px 14px; border-radius: 10px; font-size: 13px; font-weight: 600; text-decoration: none;
+          background: var(--panel); border: 1px solid var(--border); color: var(--text); display: inline-block; }
+  .pill:hover { border-color: var(--accent); }
+  .lead { color: var(--muted); font-size: 13px; margin: 4px 0 22px; max-width: 880px; line-height: 1.6; }
+  .lead b { color: var(--text); }
+
+  .table-scroll { overflow-x: auto; border: 1px solid var(--border); border-radius: var(--radius); background: var(--panel); }
+  table { width: 100%; border-collapse: collapse; font-size: 13px; min-width: 920px; }
+  th, td { text-align: left; padding: 13px 14px; border-bottom: 1px solid var(--border); vertical-align: top; line-height: 1.5; }
+  thead th { position: sticky; top: 0; background: var(--panel-2); font-size: 13px; font-weight: 700; z-index: 2; }
+  tbody th { font-weight: 600; color: var(--muted); white-space: nowrap; background: var(--panel); position: sticky; left: 0; z-index: 1; }
+  thead th:first-child { left: 0; z-index: 3; }
+  .colhead { display: flex; align-items: center; gap: 8px; }
+  .dot { width: 11px; height: 11px; border-radius: 50%; display: inline-block; }
+  tbody tr:hover td { background: rgba(91,140,255,.05); }
+  .good { color: #3fb950; } .warn { color: #d29922; }
+
+  .notes { margin-top: 26px; display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px; }
+  .note { background: var(--panel); border: 1px solid var(--border); border-radius: var(--radius); padding: 18px; }
+  .note h3 { margin: 0 0 8px; font-size: 14px; }
+  .note p, .note li { color: var(--muted); font-size: 13px; line-height: 1.6; }
+  .note ul { margin: 0; padding-left: 18px; }
+  .callout { margin-top: 18px; border-left: 3px solid var(--accent); background: var(--panel); border-radius: 0 10px 10px 0;
+             padding: 14px 16px; font-size: 13px; color: var(--muted); line-height: 1.6; }
+  .callout.warnbox { border-left-color: #d29922; }
+  .callout b { color: var(--text); }
+  footer { color: var(--muted); font-size: 12px; margin-top: 26px; }
+  footer a { color: var(--accent); text-decoration: none; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <div class="brand">
+      <div class="logo">⚖️</div>
+      <div>
+        <h1>Model Comparison</h1>
+        <small>Side by side · for running LinkedIn automation through Open Interpreter</small>
+      </div>
+    </div>
+    <a class="pill" href="/">← Back to dashboard</a>
+  </header>
+
+  <p class="lead">
+    Verified as of <b>June 2026</b>. Frontier versions: <b>Gemini 3.1 Pro</b> and, on the Claude side,
+    <b>Fable 5</b> scores higher than Opus but access is currently suspended under an export-control directive,
+    so a Claude Pro subscriber is effectively on <b>Opus 4.8</b>. For GLM, the cleanly benchmarked version is
+    <b>GLM-5.1</b> (no independent SWE score for “GLM-5.2”).
+  </p>
+
+  <div class="table-scroll">
+    <table>
+      <thead>
+        <tr>
+          <th>Feature</th>
+          <th><span class="colhead"><span class="dot" style="background:var(--glm)"></span>GLM Coding Pro</span></th>
+          <th><span class="colhead"><span class="dot" style="background:var(--gemini)"></span>Gemini Advanced</span></th>
+          <th><span class="colhead"><span class="dot" style="background:var(--claude)"></span>Claude Pro</span></th>
+          <th><span class="colhead"><span class="dot" style="background:var(--deepseek)"></span>DeepSeek V4 Flash</span></th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <th>Monthly Price</th>
+          <td>~$16–17 / mo</td>
+          <td>$19.99 / mo (Google One)</td>
+          <td>$20.00 / mo</td>
+          <td>No subscription — API/usage-based ($0.09–0.14 /M in, $0.18–0.28 /M out) or free web tier</td>
+        </tr>
+        <tr>
+          <th>Primary Model</th>
+          <td>GLM-5.1</td>
+          <td>Gemini 3.1 Pro</td>
+          <td>Opus 4.8 (Fable 5 suspended)</td>
+          <td>DeepSeek V4 Flash (284B MoE, 13B active)</td>
+        </tr>
+        <tr>
+          <th>Context Window</th>
+          <td>Up to 1M tokens</td>
+          <td>Up to 1M tokens</td>
+          <td>200K tokens (Pro UI)</td>
+          <td>1M-token context window</td>
+        </tr>
+        <tr>
+          <th>SWE-bench Verified</th>
+          <td>Not independently published; see Pro row</td>
+          <td>80.6%</td>
+          <td>88.6% (Fable 5: 95.0%)</td>
+          <td>~79.0% (vendor-reported) — no independently run Flash score; leaderboards list only V4-Pro-Max at 80.6%</td>
+        </tr>
+        <tr>
+          <th>SWE-bench Pro <span style="color:var(--muted);font-weight:400">(harder, agentic)</span></th>
+          <td>58.4% (vendor; best open-source)</td>
+          <td>46.1% (Scale standardized)</td>
+          <td>69.2% (Anthropic harness)</td>
+          <td>No leaderboard entry</td>
+        </tr>
+        <tr>
+          <th>Key Strengths</th>
+          <td>Web/front-end gen, flat-rate high-volume coding</td>
+          <td>Fast research, reasoning, Workspace integration</td>
+          <td>Most reliable long agentic loops, writing, analysis</td>
+          <td>Cheapest near-frontier coding at scale; verbose</td>
+        </tr>
+        <tr>
+          <th>Visual/Media</th>
+          <td>Minimal native image gen</td>
+          <td>Strong native image + short video</td>
+          <td>Text only, no native image/video</td>
+          <td>Text only</td>
+        </tr>
+        <tr>
+          <th>Integration/Desktop</th>
+          <td>Anthropic-compatible API endpoint (Claude Code, Open Interpreter)</td>
+          <td>Native Gmail/Docs/Sheets</td>
+          <td>Claude Code + Cowork</td>
+          <td>Pure API; Anthropic + OpenAI formats</td>
+        </tr>
+        <tr>
+          <th>Open Interpreter fit</th>
+          <td><span class="good">✅</span> Flat-rate plan exposes an API endpoint OI can call directly</td>
+          <td><span class="warn">⚠️</span> Consumer sub gives <b>no</b> API access — needs separate Gemini API key, billed apart</td>
+          <td><span class="warn">⚠️</span> Pro is chat-only — OI needs separate Anthropic API credits (pay-per-token), not the $20 plan</td>
+          <td><span class="good">✅</span> Pure API, dirt cheap, OI-native</td>
+        </tr>
+        <tr>
+          <th>LinkedIn automation via OI</th>
+          <td>Predictable flat-rate cost for repeated runs</td>
+          <td>Awkward — no direct API path from the subscription</td>
+          <td>Most reliable script generation/long loops, but you pay API rates</td>
+          <td>Cheapest for high-volume; Claude still edges it on long, tool-heavy agentic loops</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="callout">
+    <b>The one thing that changes the whole comparison:</b> Open Interpreter calls models through
+    <b>API keys</b>, not chat subscriptions. So Claude Pro and Gemini Advanced don't power Open Interpreter
+    on their own — you'd need separate API billing for each. GLM Coding Pro and DeepSeek are the natural fits
+    because both expose Anthropic-format API endpoints OI can point at directly: GLM as a flat monthly rate,
+    DeepSeek as near-free pay-per-token.
+  </div>
+
+  <div class="notes">
+    <div class="note">
+      <h3>💸 Cheapest at volume</h3>
+      <p><b>DeepSeek V4 Flash.</b> Once a Playwright/Selenium script works, you don't need frontier reasoning
+      to re-run it, and the per-token cost is negligible.</p>
+    </div>
+    <div class="note">
+      <h3>📊 Most predictable budget</h3>
+      <p><b>GLM Coding Pro.</b> Flat rate means a runaway agentic loop won't surprise you with a bill.</p>
+    </div>
+    <div class="note">
+      <h3>🛠️ Most reliable at writing the automation</h3>
+      <p><b>Claude via API (Opus 4.8)</b>, since it still has the edge on long-running agent loops with tool use.
+      Point OI at the Anthropic API, not your $20 Pro plan.</p>
+    </div>
+  </div>
+
+  <div class="callout warnbox">
+    <b>Caution:</b> LinkedIn's User Agreement prohibits automated scraping, bots, and automated
+    connection/messaging activity. Running automation against it risks account restriction or a permanent ban,
+    and LinkedIn has pursued scrapers legally. The compliant route is LinkedIn's official Marketing/Talent
+    Developer APIs rather than browser automation — model choice only matters once you've sorted out which path you're on.
+  </div>
+
+  <footer>
+    <a href="/">Dashboard</a> · <a href="/checks">Manual checks</a>
+  </footer>
+</div>
+</body>
+</html>

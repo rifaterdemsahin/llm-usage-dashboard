@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Manual Checks · LLM Usage Dashboard</title>
+<style>
+  :root {
+    --bg: #0b0f17; --panel: #141a26; --panel-2: #1b2230; --border: #263043;
+    --text: #e6ebf2; --muted: #8a97ad; --accent: #5b8cff;
+    --claude: #d97757; --gemini: #4285f4; --openrouter: #9b6bff; --radius: 14px;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; min-height: 100vh; color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    background: radial-gradient(1200px 800px at 80% -10%, #1a2238 0%, var(--bg) 55%);
+  }
+  .wrap { max-width: 1100px; margin: 0 auto; padding: 22px 22px 60px; }
+  header.top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; gap: 14px; flex-wrap: wrap; }
+  .brand { display: flex; align-items: center; gap: 12px; }
+  .logo { width: 38px; height: 38px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 20px;
+          background: linear-gradient(135deg, var(--accent), var(--openrouter)); }
+  .brand h1 { font-size: 18px; margin: 0; }
+  .brand small { color: var(--muted); font-size: 12px; }
+  .pill { padding: 9px 14px; border-radius: 10px; font-size: 13px; font-weight: 600; text-decoration: none;
+          background: var(--panel); border: 1px solid var(--border); color: var(--text); display: inline-block; }
+  .pill:hover { border-color: var(--accent); }
+  .lead { color: var(--muted); font-size: 14px; margin: 4px 0 26px; max-width: 720px; line-height: 1.6; }
+
+  .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 16px; }
+  .card { background: var(--panel); border: 1px solid var(--border); border-radius: var(--radius); padding: 20px; position: relative; overflow: hidden; }
+  .card .accent-bar { position: absolute; left: 0; top: 0; bottom: 0; width: 4px; }
+  .card .head { display: flex; align-items: center; gap: 10px; font-size: 16px; font-weight: 700; margin-bottom: 4px; }
+  .dot { width: 12px; height: 12px; border-radius: 50%; display: inline-block; }
+  .card .note { color: var(--muted); font-size: 12px; margin: 0 0 16px; line-height: 1.5; }
+  .links { display: flex; flex-direction: column; gap: 8px; }
+  .link {
+    display: flex; align-items: center; justify-content: space-between; gap: 10px;
+    padding: 11px 13px; border-radius: 10px; text-decoration: none; color: var(--text);
+    background: var(--panel-2); border: 1px solid var(--border); font-size: 13px; transition: border-color .15s;
+  }
+  .link:hover { border-color: var(--accent); }
+  .link .label { font-weight: 600; }
+  .link .desc { color: var(--muted); font-size: 11px; }
+  .link .arrow { color: var(--muted); }
+  .badge { font-size: 10px; padding: 3px 8px; border-radius: 20px; font-weight: 600; margin-left: auto;
+           background: rgba(155,107,255,.15); color: var(--openrouter); }
+  footer { color: var(--muted); font-size: 12px; margin-top: 28px; }
+  footer a { color: var(--accent); text-decoration: none; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <div class="brand">
+      <div class="logo">🔎</div>
+      <div>
+        <h1>Manual Checks</h1>
+        <small>Open each provider's portal to verify usage &amp; billing</small>
+      </div>
+    </div>
+    <a class="pill" href="/">← Back to dashboard</a>
+  </header>
+
+  <p class="lead">
+    The dashboard pulls OpenRouter automatically and stores your numbers in MongoDB Atlas.
+    Use these direct links to double-check the source, grab figures that aren't pulled
+    automatically (Claude &amp; Gemini), or audit billing.
+  </p>
+
+  <div class="grid">
+
+    <!-- OpenRouter -->
+    <div class="card">
+      <div class="accent-bar" style="background:var(--openrouter)"></div>
+      <div class="head"><span class="dot" style="background:var(--openrouter)"></span> OpenRouter</div>
+      <p class="note">Pulled live by the dashboard. Use these to verify and to read request/token counts.</p>
+      <div class="links">
+        <a class="link" href="https://openrouter.ai/settings/credits" target="_blank" rel="noopener">
+          <span><span class="label">Credits</span><br><span class="desc">Balance &amp; total spent</span></span><span class="arrow">↗</span></a>
+        <a class="link" href="https://openrouter.ai/activity" target="_blank" rel="noopener">
+          <span><span class="label">Activity</span><br><span class="desc">Requests &amp; tokens per model</span></span><span class="arrow">↗</span></a>
+        <a class="link" href="https://openrouter.ai/settings/keys" target="_blank" rel="noopener">
+          <span><span class="label">API keys</span><br><span class="desc">Manage keys</span></span><span class="arrow">↗</span></a>
+      </div>
+    </div>
+
+    <!-- Claude -->
+    <div class="card">
+      <div class="accent-bar" style="background:var(--claude)"></div>
+      <div class="head"><span class="dot" style="background:var(--claude)"></span> Claude (Anthropic)</div>
+      <p class="note">Entered manually — read cost, requests and tokens here, then put them in Settings.</p>
+      <div class="links">
+        <a class="link" href="https://console.anthropic.com/settings/usage" target="_blank" rel="noopener">
+          <span><span class="label">Usage</span><br><span class="desc">Requests &amp; tokens</span></span><span class="arrow">↗</span></a>
+        <a class="link" href="https://console.anthropic.com/settings/cost" target="_blank" rel="noopener">
+          <span><span class="label">Cost</span><br><span class="desc">Spend by period</span></span><span class="arrow">↗</span></a>
+        <a class="link" href="https://console.anthropic.com/settings/billing" target="_blank" rel="noopener">
+          <span><span class="label">Billing</span><br><span class="desc">Invoices &amp; credits</span></span><span class="arrow">↗</span></a>
+      </div>
+    </div>
+
+    <!-- Gemini -->
+    <div class="card">
+      <div class="accent-bar" style="background:var(--gemini)"></div>
+      <div class="head"><span class="dot" style="background:var(--gemini)"></span> Gemini (Google)</div>
+      <p class="note">Entered manually — figures live in AI Studio and Google Cloud billing.</p>
+      <div class="links">
+        <a class="link" href="https://aistudio.google.com/usage" target="_blank" rel="noopener">
+          <span><span class="label">AI Studio usage</span><br><span class="desc">API usage overview</span></span><span class="arrow">↗</span></a>
+        <a class="link" href="https://console.cloud.google.com/billing" target="_blank" rel="noopener">
+          <span><span class="label">Cloud Billing</span><br><span class="desc">Cost &amp; reports</span></span><span class="arrow">↗</span></a>
+        <a class="link" href="https://console.cloud.google.com/apis/api/generativelanguage.googleapis.com/metrics" target="_blank" rel="noopener">
+          <span><span class="label">API metrics</span><br><span class="desc">Request &amp; token counts</span></span><span class="arrow">↗</span></a>
+      </div>
+    </div>
+
+  </div>
+
+  <footer>
+    Secrets are sourced from the Azure “delivery pilot” Key Vault and stored as Fly secrets ·
+    <a href="/">Dashboard</a> · <a href="/healthz">Health</a>
+  </footer>
+</div>
+</body>
+</html>

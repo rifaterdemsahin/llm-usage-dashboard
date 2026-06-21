@@ -17,7 +17,7 @@ import (
 	"time"
 )
 
-//go:embed index.html
+//go:embed index.html checks.html compare.html
 var content embed.FS
 
 const cookieName = "llmdash_session"
@@ -127,11 +127,19 @@ func (c config) meHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func staticHandler(w http.ResponseWriter, r *http.Request) {
-	if r.URL.Path != "/" && r.URL.Path != "/index.html" {
+	var file string
+	switch r.URL.Path {
+	case "/", "/index.html":
+		file = "index.html"
+	case "/checks", "/checks.html":
+		file = "checks.html"
+	case "/compare", "/compare.html":
+		file = "compare.html"
+	default:
 		http.NotFound(w, r)
 		return
 	}
-	b, err := content.ReadFile("index.html")
+	b, err := content.ReadFile(file)
 	if err != nil {
 		http.Error(w, "not found", http.StatusInternalServerError)
 		return
@@ -204,6 +212,7 @@ func (c config) settingsHandler(w http.ResponseWriter, r *http.Request) {
 
 	switch r.Method {
 	case http.MethodGet:
+		c.seedFromVault(ctx, user) // populate provider keys from Fly secrets (sourced from Azure Key Vault)
 		data, err := c.store.Get(ctx, user)
 		if err != nil {
 			writeJSON(w, http.StatusInternalServerError, map[string]string{"error": err.Error()})
@@ -226,6 +235,41 @@ func (c config) settingsHandler(w http.ResponseWriter, r *http.Request) {
 		writeJSON(w, http.StatusOK, map[string]string{"ok": "true"})
 	default:
 		http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
+	}
+}
+
+// seedFromVault populates the user's stored provider API keys from environment
+// variables (Fly secrets, originally sourced from the Azure "delivery pilot" Key
+// Vault). It only fills keys that aren't set yet, so user edits are never clobbered.
+func (c config) seedFromVault(ctx context.Context, user string) {
+	data, err := c.store.Get(ctx, user)
+	if err != nil {
+		return
+	}
+	if data == nil {
+		data = map[string]any{}
+	}
+	keys, _ := data["keys"].(map[string]any)
+	if keys == nil {
+		keys = map[string]any{}
+		data["keys"] = keys
+	}
+	changed := false
+	seed := func(field, env string) {
+		if cur, _ := keys[field].(string); cur == "" {
+			if v := os.Getenv(env); v != "" {
+				keys[field] = v
+				changed = true
+			}
+		}
+	}
+	seed("openrouter", "OPENROUTER_API_KEY")
+	seed("claude", "ANTHROPIC_API_KEY")
+	seed("gemini", "GEMINI_API_KEY")
+	if changed {
+		if err := c.store.Set(ctx, user, data); err != nil {
+			log.Printf("seedFromVault save failed: %v", err)
+		}
 	}
 }
 
