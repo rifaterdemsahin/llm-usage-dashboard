@@ -17,7 +17,7 @@ import (
 	"time"
 )
 
-//go:embed index.html checks.html compare.html errors.html
+//go:embed index.html checks.html compare.html errors.html mongo.html
 var content embed.FS
 
 const cookieName = "llmdash_session"
@@ -56,6 +56,7 @@ func main() {
 	mux.HandleFunc("/api/me", cfg.meHandler)
 	mux.HandleFunc("/api/settings", cfg.settingsHandler)
 	mux.HandleFunc("/api/usage", cfg.usageHandler)
+	mux.HandleFunc("/api/dbstatus", cfg.dbStatusHandler)
 	mux.HandleFunc("/healthz", func(w http.ResponseWriter, r *http.Request) { w.Write([]byte("ok")) })
 	mux.HandleFunc("/", staticHandler)
 
@@ -137,6 +138,8 @@ func staticHandler(w http.ResponseWriter, r *http.Request) {
 		file = "compare.html"
 	case "/errors", "/errors.html":
 		file = "errors.html"
+	case "/mongo", "/mongo.html":
+		file = "mongo.html"
 	default:
 		http.NotFound(w, r)
 		return
@@ -238,6 +241,27 @@ func (c config) settingsHandler(w http.ResponseWriter, r *http.Request) {
 	default:
 		http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
 	}
+}
+
+// dbStatusHandler reports whether the active store is MongoDB Atlas or the
+// in-memory fallback, plus the configured database and cache TTL.
+func (c config) dbStatusHandler(w http.ResponseWriter, r *http.Request) {
+	if _, ok := c.currentUser(r); !ok {
+		w.WriteHeader(http.StatusUnauthorized)
+		return
+	}
+	db := os.Getenv("MONGODB_DB")
+	if db == "" {
+		db = "llmdash"
+	}
+	writeJSON(w, http.StatusOK, map[string]any{
+		"backend":         c.store.Kind(),
+		"connected":       c.store.Kind() == "mongodb",
+		"database":        db,
+		"collection":      "settings",
+		"uriConfigured":   os.Getenv("MONGODB_URI") != "",
+		"cacheTTLSeconds": int(usageCacheTTL().Seconds()),
+	})
 }
 
 // seedFromVault populates the user's stored provider API keys from environment

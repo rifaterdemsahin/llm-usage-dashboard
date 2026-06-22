@@ -18,6 +18,7 @@ import (
 type Store interface {
 	Get(ctx context.Context, user string) (map[string]any, error)
 	Set(ctx context.Context, user string, data map[string]any) error
+	Kind() string // "mongodb" or "memory"
 }
 
 // newStore returns a MongoDB Atlas-backed store when MONGODB_URI is set,
@@ -42,6 +43,8 @@ func newStore() Store {
 type mongoStore struct {
 	coll *mongo.Collection
 }
+
+func (m *mongoStore) Kind() string { return "mongodb" }
 
 func newMongoStore(uri string) (*mongoStore, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
@@ -105,6 +108,8 @@ type memStore struct {
 func newMemStore() *memStore {
 	return &memStore{m: make(map[string]map[string]any)}
 }
+
+func (s *memStore) Kind() string { return "memory" }
 
 func (s *memStore) Get(_ context.Context, user string) (map[string]any, error) {
 	s.mu.Lock()
