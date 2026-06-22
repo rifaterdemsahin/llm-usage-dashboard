@@ -62,6 +62,16 @@
     color: var(--text); font-size: 14px; outline: none;
   }
   .field:focus { border-color: var(--accent); }
+  .pw-wrap { position: relative; }
+  .pw-wrap .field { padding-right: 44px; }
+  .pw-toggle {
+    position: absolute; right: 6px; top: 50%; transform: translateY(-50%);
+    background: transparent; border: none; color: var(--muted); font-size: 16px;
+    width: 34px; height: 34px; border-radius: 8px; cursor: pointer; line-height: 1;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .pw-toggle:hover { color: var(--text); background: var(--panel-2); }
+  .pw-toggle.on { color: var(--accent); }
   .btn {
     width: 100%; margin-top: 20px; padding: 12px;
     background: var(--accent); color: #fff; border: none; border-radius: 10px;
@@ -161,7 +171,10 @@
     <label for="loginUser">Username</label>
     <input class="field" id="loginUser" placeholder="you@example.com" autocomplete="username" />
     <label for="loginPass">Password</label>
-    <input class="field" id="loginPass" type="password" placeholder="••••••••" autocomplete="current-password" />
+    <div class="pw-wrap">
+      <input class="field" id="loginPass" type="password" placeholder="••••••••" autocomplete="current-password" />
+      <button type="button" class="pw-toggle" id="pwToggle" aria-label="Show password" title="Show password (hold or click)">👁</button>
+    </div>
     <button class="btn" id="loginBtn">Sign in</button>
     <div class="err" id="loginErr"></div>
     <div class="hint">
@@ -693,6 +706,19 @@ function loadDemo(){
    ========================================================= */
 $('loginBtn').addEventListener('click', doLogin);
 $('loginPass').addEventListener('keydown', e => { if (e.key === 'Enter') doLogin(); });
+
+// Show / hide (peek) password — click to toggle
+(function(){
+  const pass = $('loginPass'), btn = $('pwToggle');
+  function setShown(shown){
+    pass.type = shown ? 'text' : 'password';
+    btn.classList.toggle('on', shown);
+    btn.textContent = shown ? '🙈' : '👁';
+    btn.setAttribute('aria-label', shown ? 'Hide password' : 'Show password');
+    btn.title = shown ? 'Hide password' : 'Show password';
+  }
+  btn.addEventListener('click', () => setShown(pass.type === 'password'));
+})();
 $('logoutBtn').addEventListener('click', logout);
 $('settingsBtn').addEventListener('click', openSettings);
 $('refreshBtn').addEventListener('click', refresh);

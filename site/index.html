@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Redirecting… · LLM Usage Dashboard</title>
+<!-- Instant redirect to the live app on Fly.io -->
+<meta http-equiv="refresh" content="0; url=https://llm-usage-dashboard.fly.dev/" />
+<link rel="canonical" href="https://llm-usage-dashboard.fly.dev/" />
+<script>
+  // Redirect immediately (preserve any path/query/hash after the repo base).
+  location.replace("https://llm-usage-dashboard.fly.dev/" + (location.hash || ""));
+</script>
+<style>
+  html,body{height:100%;margin:0}
+  body{display:flex;align-items:center;justify-content:center;
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    background:radial-gradient(900px 600px at 50% -10%,#1c2741 0%,#0b0f17 60%);color:#e6ebf2}
+  .box{text-align:center;padding:32px}
+  .logo{width:54px;height:54px;border-radius:14px;margin:0 auto 18px;display:flex;align-items:center;
+    justify-content:center;font-size:28px;background:linear-gradient(135deg,#5b8cff,#9b6bff)}
+  h1{font-size:20px;margin:0 0 8px}
+  p{color:#8a97ad;font-size:14px;margin:0 0 18px}
+  a{display:inline-block;padding:11px 18px;border-radius:10px;background:#5b8cff;color:#fff;
+    text-decoration:none;font-weight:600;font-size:14px}
+</style>
+</head>
+<body>
+  <div class="box">
+    <div class="logo">📊</div>
+    <h1>Redirecting to the live app…</h1>
+    <p>This dashboard now runs on Fly.io.</p>
+    <a href="https://llm-usage-dashboard.fly.dev/">Open LLM Usage Dashboard →</a>
+  </div>
+</body>
+</html>
