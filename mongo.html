@@ -103,7 +103,8 @@
     </table>
     <div class="btn-row" style="margin-top:14px">
       <a class="btn" href="https://cloud.mongodb.com/v2/6a3168c65a7cfcad228d05d9#/explorer/6a3168ff1afd1054b30c9b9b" target="_blank" rel="noopener">Open Data Explorer ↗</a>
-      <a class="btn primary" href="https://cloud.mongodb.com/v2/6a3168c65a7cfcad228d05d9#/security/network/accessList" target="_blank" rel="noopener">Open Network Access (allowlist) ↗</a>
+      <a class="btn primary" href="https://cloud.mongodb.com/v2/6a3168c65a7cfcad228d05d9#/explorer/6a3168ff1afd1054b30c9b9b/llmdash/settings/find" target="_blank" rel="noopener">Open settings collection ↗</a>
+      <a class="btn" href="https://cloud.mongodb.com/v2/6a3168c65a7cfcad228d05d9#/security/network/accessList" target="_blank" rel="noopener">Network Access (allowlist) ↗</a>
     </div>
   </div>
 
@@ -127,8 +128,9 @@
   <!-- DATA MODEL -->
   <div class="card">
     <h2>Data model</h2>
-    <p class="muted">One document per user in the <code>settings</code> collection. The settings blob is stored as a JSON
-      string to avoid BSON key restrictions; usage results are cached under <code>cache</code>.</p>
+    <p class="muted">One document per user in the
+      <a class="link" href="https://cloud.mongodb.com/v2/6a3168c65a7cfcad228d05d9#/explorer/6a3168ff1afd1054b30c9b9b/llmdash/settings/find" target="_blank" rel="noopener"><code>llmdash.settings</code></a>
+      collection. The settings blob is stored as a JSON string to avoid BSON key restrictions; usage results are cached under <code>cache</code>.</p>
     <pre><span class="cm">// db: llmdash · collection: settings</span>
 {
   "_id": "info@pexabo.com",          <span class="cm">// the login username</span>
