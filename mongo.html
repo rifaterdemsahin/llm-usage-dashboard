@@ -103,8 +103,9 @@
     </table>
     <div class="btn-row" style="margin-top:14px">
       <a class="btn" href="https://cloud.mongodb.com/v2/6a3168c65a7cfcad228d05d9#/explorer/6a3168ff1afd1054b30c9b9b" target="_blank" rel="noopener">Open Data Explorer ↗</a>
-      <a class="btn primary" href="https://cloud.mongodb.com/v2/6a3168c65a7cfcad228d05d9#/explorer/6a3168ff1afd1054b30c9b9b/llmdash/settings/find" target="_blank" rel="noopener">Open settings collection ↗</a>
-      <a class="btn" href="https://cloud.mongodb.com/v2/6a3168c65a7cfcad228d05d9#/security/network/accessList" target="_blank" rel="noopener">Network Access (allowlist) ↗</a>
+      <a class="btn primary" href="https://cloud.mongodb.com/v2/6a3168c65a7cfcad228d05d9#/explorer/6a3168ff1afd1054b30c9b9b/llmdash/settings/find" target="_blank" rel="noopener">settings collection ↗</a>
+      <a class="btn primary" href="https://cloud.mongodb.com/v2/6a3168c65a7cfcad228d05d9#/explorer/6a3168ff1afd1054b30c9b9b/llmdash/daily_usage/find" target="_blank" rel="noopener">daily_usage collection ↗</a>
+      <a class="btn" href="https://cloud.mongodb.com/v2/6a3168c65a7cfcad228d05d9#/security/network/accessList" target="_blank" rel="noopener">Network Access ↗</a>
     </div>
   </div>
 
@@ -145,6 +146,20 @@
   "claude":     { "cost": 0, "requests": 0, "tokens": 0 },
   "gemini":     { "cost": 0, "requests": 0, "tokens": 0 },
   "cache":      { "openrouter": { "value": {"cost":52.18}, "fetchedAt": "…" } }
+}</pre>
+
+    <h2 style="margin-top:22px">daily_usage collection</h2>
+    <p class="muted">One document per <b>user · date · provider</b>. The first reading of the day sets
+      <code>opening</code>; every later pull updates <code>last</code>. <b>Spent today = last − opening</b>.</p>
+    <pre><span class="cm">// db: llmdash · collection: daily_usage</span>
+{
+  "_id": "info@pexabo.com|2026-06-22|openrouter",
+  "user": "info@pexabo.com",
+  "date": "2026-06-22",
+  "provider": "openrouter",
+  "opening": 53.04,                  <span class="cm">// cumulative at first reading today</span>
+  "last": 53.04,                     <span class="cm">// latest cumulative reading</span>
+  "updated": ISODate("…")
 }</pre>
   </div>
 
