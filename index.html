@@ -186,6 +186,7 @@
       <a class="pill" href="/checks">🔎 Manual checks</a>
       <a class="pill" href="/compare">⚖️ Compare</a>
       <a class="pill" href="/errors">⚠️ Errors</a>
+      <button class="pill" id="openUsageBtn">↗ Open usage pages</button>
       <button class="pill" id="refreshBtn">↻ Refresh</button>
       <button class="pill" id="guideBtn">❔ Guide</button>
       <button class="pill" id="settingsBtn">⚙ Settings</button>
@@ -277,8 +278,18 @@
       </small>
     </div>
 
+    <div class="prov-block">
+      <div class="head">🎬 Video walkthroughs</div>
+      <small>
+        Watch how to find and read the usage numbers:<br>
+        ▶ <a href="https://youtu.be/cTbw_7hx6s0" target="_blank" rel="noopener" style="color:var(--accent)">youtu.be/cTbw_7hx6s0</a><br>
+        ▶ <a href="https://youtu.be/O2APTABsZHQ" target="_blank" rel="noopener" style="color:var(--accent)">youtu.be/O2APTABsZHQ</a>
+      </small>
+    </div>
+
     <div class="modal-actions">
-      <button class="btn" id="guideToSettings" style="margin-top:0;">Open Settings</button>
+      <button class="btn" id="guideOpenUsage" style="margin-top:0;">↗ Open usage pages</button>
+      <button class="btn secondary" id="guideToSettings" style="margin-top:0;">Open Settings</button>
       <button class="btn secondary" id="closeGuide" style="margin-top:0;">Close</button>
     </div>
   </div>
@@ -690,10 +701,22 @@ $('loadDemo').addEventListener('click', loadDemo);
 $('orTest').addEventListener('click', testOpenRouter);
 $('modal').addEventListener('click', e => { if (e.target.id === 'modal') closeSettings(); });
 
+// Open each provider's usage page in a new window/tab
+const USAGE_PAGES = [
+  'https://claude.ai/new#settings/usage',
+  'https://openrouter.ai/settings/credits',
+  'https://gemini.google.com/usage',
+];
+function openUsagePages(){
+  USAGE_PAGES.forEach(url => window.open(url, '_blank', 'noopener'));
+}
+$('openUsageBtn').addEventListener('click', openUsagePages);
+
 // Guide modal
 $('guideBtn').addEventListener('click', () => $('guideModal').style.display = 'flex');
 $('closeGuide').addEventListener('click', () => $('guideModal').style.display = 'none');
 $('guideToSettings').addEventListener('click', () => { $('guideModal').style.display = 'none'; openSettings(); });
+$('guideOpenUsage').addEventListener('click', openUsagePages);
 $('guideModal').addEventListener('click', e => { if (e.target.id === 'guideModal') $('guideModal').style.display = 'none'; });
 
 // Auto-login if the session cookie is still valid (server checks it)
