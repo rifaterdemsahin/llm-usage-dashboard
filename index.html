@@ -708,7 +708,9 @@ const USAGE_PAGES = [
   'https://gemini.google.com/usage',
 ];
 function openUsagePages(){
-  USAGE_PAGES.forEach(url => window.open(url, '_blank', 'noopener'));
+  // No features string -> opens as tabs (Chrome allows multiple from one gesture;
+  // a features arg makes them popups and the 2nd/3rd get blocked).
+  USAGE_PAGES.forEach(url => window.open(url, '_blank'));
 }
 $('openUsageBtn').addEventListener('click', openUsagePages);
 
