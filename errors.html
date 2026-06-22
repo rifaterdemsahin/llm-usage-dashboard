@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Why Claude &amp; Gemini won't pull · LLM Usage Dashboard</title>
+<style>
+  :root {
+    --bg: #0b0f17; --panel: #141a26; --panel-2: #1b2230; --border: #263043;
+    --text: #e6ebf2; --muted: #8a97ad; --accent: #5b8cff;
+    --claude: #d97757; --gemini: #4285f4; --openrouter: #9b6bff;
+    --good: #3fb950; --warn: #d29922; --bad: #f85149; --radius: 14px;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; min-height: 100vh; color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    background: radial-gradient(1200px 800px at 80% -10%, #1a2238 0%, var(--bg) 55%);
+  }
+  .wrap { max-width: 1080px; margin: 0 auto; padding: 22px 22px 60px; }
+  header.top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; gap: 14px; flex-wrap: wrap; }
+  .brand { display: flex; align-items: center; gap: 12px; }
+  .logo { width: 38px; height: 38px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 20px;
+          background: linear-gradient(135deg, var(--bad), var(--claude)); }
+  .brand h1 { font-size: 18px; margin: 0; }
+  .brand small { color: var(--muted); font-size: 12px; }
+  .pill { padding: 9px 14px; border-radius: 10px; font-size: 13px; font-weight: 600; text-decoration: none;
+          background: var(--panel); border: 1px solid var(--border); color: var(--text); display: inline-block; }
+  .pill:hover { border-color: var(--accent); }
+  .pill.active { border-color: var(--accent); color: var(--accent); }
+  .menu { display: flex; gap: 8px; flex-wrap: wrap; }
+  .lead { color: var(--muted); font-size: 14px; margin: 4px 0 24px; max-width: 820px; line-height: 1.6; }
+  .lead b { color: var(--text); }
+
+  .card { background: var(--panel); border: 1px solid var(--border); border-radius: var(--radius); padding: 20px; margin-bottom: 18px; position: relative; overflow: hidden; }
+  .card .accent-bar { position: absolute; left: 0; top: 0; bottom: 0; width: 4px; }
+  .card .head { display: flex; align-items: center; gap: 10px; font-size: 16px; font-weight: 700; margin-bottom: 4px; }
+  .dot { width: 12px; height: 12px; border-radius: 50%; display: inline-block; }
+  .tag { font-size: 10px; padding: 3px 8px; border-radius: 20px; font-weight: 700; margin-left: auto; }
+  .tag.ok { background: rgba(63,185,80,.15); color: var(--good); }
+  .tag.no { background: rgba(248,81,73,.15); color: var(--bad); }
+  .card h4 { margin: 16px 0 6px; font-size: 12px; letter-spacing: .04em; text-transform: uppercase; color: var(--muted); }
+  pre { margin: 0; background: #0d1117; border: 1px solid var(--border); border-radius: 10px; padding: 12px 14px; overflow-x: auto;
+        font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 12px; line-height: 1.5; color: #e6edf3; }
+  pre .err { color: var(--bad); } pre .ok { color: var(--good); } pre .cm { color: var(--muted); }
+  ul { margin: 6px 0 0; padding-left: 20px; } li { color: var(--text); font-size: 13.5px; line-height: 1.7; }
+  li small, .note { color: var(--muted); }
+  .sub { border-left: 3px solid var(--warn); background: var(--panel-2); border-radius: 0 10px 10px 0; padding: 12px 14px; margin-top: 14px; font-size: 13px; line-height: 1.6; color: var(--muted); }
+  .sub b { color: var(--text); }
+  .have { display:inline-block; font-size: 11px; color: var(--good); margin-left: 6px; }
+  footer { color: var(--muted); font-size: 12px; margin-top: 26px; }
+  footer a { color: var(--accent); text-decoration: none; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <div class="brand">
+      <div class="logo">⚠️</div>
+      <div>
+        <h1>Why Claude &amp; Gemini don't auto-pull</h1>
+        <small>The real errors, and what's needed to see usage</small>
+      </div>
+    </div>
+    <nav class="menu">
+      <a class="pill" href="/">📊 Dashboard</a>
+      <a class="pill" href="/checks">🔎 Manual checks</a>
+      <a class="pill" href="/compare">⚖️ Compare</a>
+      <a class="pill active" href="/errors">⚠️ Errors</a>
+    </nav>
+  </header>
+
+  <p class="lead">
+    <b>OpenRouter works</b> because it exposes a key-scoped usage endpoint
+    (<code>GET /api/v1/key</code>) that returns spend with the same key used to call models.
+    <b>Claude and Gemini don't.</b> The API keys we hold can <i>call the models</i> but cannot
+    <i>read usage</i> — that data sits behind different credentials. And critically, the
+    <b>chat subscriptions</b> (Claude Pro, Gemini Advanced) expose <b>no usage API at all</b>.
+  </p>
+
+  <!-- CLAUDE -->
+  <div class="card">
+    <div class="accent-bar" style="background:var(--claude)"></div>
+    <div class="head"><span class="dot" style="background:var(--claude)"></span> Claude (Anthropic) <span class="tag no">USAGE BLOCKED</span></div>
+    <p class="note">The stored key is valid — it returns <b>200</b> from the Messages API — but the Admin Usage/Cost API rejects it.</p>
+
+    <h4>What actually happens</h4>
+    <pre><span class="cm"># Messages API with our key — works</span>
+POST /v1/messages                       <span class="ok">→ HTTP 200</span>
+
+<span class="cm"># Admin Usage Report with the same key — rejected</span>
+GET /v1/organizations/usage_report/messages
+<span class="err">→ HTTP 401
+{"type":"error","error":{"type":"authentication_error",
+ "message":"invalid x-api-key"}}</span></pre>
+
+    <h4>Why</h4>
+    <ul>
+      <li>Usage &amp; cost are only on the <b>Admin API</b> (<code>/v1/organizations/usage_report/*</code>, <code>/cost_report</code>).</li>
+      <li>It needs an <b>Admin API key</b> (<code>sk-ant-admin…</code>), which only an <b>Organization Owner</b> can create — a normal <code>sk-ant-api…</code> key can't read it.</li>
+      <li>Browsers can't call it directly (CORS) — must be server-side, which we already do for OpenRouter.</li>
+    </ul>
+
+    <h4>What needs to happen to see it</h4>
+    <ul>
+      <li>An org owner creates an <b>Admin key</b> in Console → Settings → Admin keys.</li>
+      <li>Store it as a secret (e.g. <code>ANTHROPIC_ADMIN_KEY</code>); the backend then calls the usage + cost reports and fills the Claude card live.</li>
+    </ul>
+
+    <div class="sub">
+      <b>Subscriptions ≠ API.</b> A <b>Claude Pro / Max</b> plan ($20 / $100) is the <i>claude.ai chat</i> product.
+      Its usage is <b>not exposed by any API</b> and can't appear here — only <b>API (Console) billing</b> can.
+      To track Claude here you must use the <b>API platform with an Admin key</b>, not the chat subscription.
+    </div>
+  </div>
+
+  <!-- GEMINI -->
+  <div class="card">
+    <div class="accent-bar" style="background:var(--gemini)"></div>
+    <div class="head"><span class="dot" style="background:var(--gemini)"></span> Gemini (Google) <span class="tag no">USAGE BLOCKED</span></div>
+    <p class="note">The AI Studio key can list/call models, but there is <b>no usage or cost endpoint on it at all</b>.</p>
+
+    <h4>What actually happens</h4>
+    <pre><span class="cm"># List models with our key — works</span>
+GET /v1beta/models?key=…                <span class="ok">→ HTTP 200</span>
+
+<span class="cm"># Usage / cost for that key</span>
+<span class="err">→ no such endpoint exists.</span>
+<span class="cm">  Usage &amp; spend live in Google Cloud, not the Gemini API.</span></pre>
+
+    <h4>Why</h4>
+    <ul>
+      <li>The Generative Language (AI Studio) API only serves <b>inference</b> — it reports no token/cost totals.</li>
+      <li>Usage &amp; cost come from <b>Google Cloud</b>: the <b>Cloud Billing API</b> (cost) and <b>Cloud Monitoring API</b> (request/token metrics).</li>
+      <li>Those require a <b>Google Cloud project with billing enabled</b> and a <b>service account</b> with the right roles — not a bare API key.</li>
+    </ul>
+
+    <h4>What needs to happen to see it</h4>
+    <ul>
+      <li>Use a GCP <b>service account JSON</b> <span class="have">✓ we have <code>gcp-service-account-json</code> in the vault</span> with <code>roles/monitoring.viewer</code> and <code>roles/billing.viewer</code>.</li>
+      <li>Enable the <b>Cloud Billing</b> and <b>Cloud Monitoring</b> APIs on the project that owns the Gemini key.</li>
+      <li>The backend then reads token metrics (<code>generativelanguage.googleapis.com/…</code>) and cost from billing, and fills the Gemini card.</li>
+    </ul>
+
+    <div class="sub">
+      <b>Subscriptions ≠ API.</b> <b>Gemini Advanced</b> (Google One AI) is the consumer chat plan and has
+      <b>no API access whatsoever</b>. Only <b>pay-as-you-go API usage</b> tied to a Cloud project can be measured here.
+    </div>
+  </div>
+
+  <!-- OPENROUTER (contrast) -->
+  <div class="card">
+    <div class="accent-bar" style="background:var(--openrouter)"></div>
+    <div class="head"><span class="dot" style="background:var(--openrouter)"></span> OpenRouter <span class="tag ok">LIVE</span></div>
+    <p class="note">For contrast — this is why OpenRouter just works:</p>
+    <pre><span class="cm"># Same key that calls models also reports spend</span>
+GET /api/v1/key  (Bearer sk-or-…)       <span class="ok">→ HTTP 200</span>
+<span class="ok">{"data":{"usage":52.18,"limit":null}}</span></pre>
+    <p class="note" style="margin-top:10px">One key, usage included, callable server-side. That's the bar the other two don't meet.</p>
+  </div>
+
+  <footer>
+    <a href="/">Dashboard</a> · <a href="/checks">Manual checks</a> · <a href="/compare">Compare</a> ·
+    <a href="https://github.com/rifaterdemsahin/llm-usage-dashboard" target="_blank" rel="noopener">GitHub repo</a>
+  </footer>
+</div>
+</body>
+</html>

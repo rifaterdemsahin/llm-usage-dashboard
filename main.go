@@ -17,7 +17,7 @@ import (
 	"time"
 )
 
-//go:embed index.html checks.html compare.html
+//go:embed index.html checks.html compare.html errors.html
 var content embed.FS
 
 const cookieName = "llmdash_session"
@@ -135,6 +135,8 @@ func staticHandler(w http.ResponseWriter, r *http.Request) {
 		file = "checks.html"
 	case "/compare", "/compare.html":
 		file = "compare.html"
+	case "/errors", "/errors.html":
+		file = "errors.html"
 	default:
 		http.NotFound(w, r)
 		return
