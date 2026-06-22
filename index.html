@@ -385,6 +385,7 @@ function emptyData(){
     claude:     { cost: 0, requests: 0, tokens: 0, live: false, series: zeros() },
     gemini:     { cost: 0, requests: 0, tokens: 0, live: false, series: zeros() },
     keys: { openrouter: '' },
+    today: {},
     updated: null,
   };
 }
@@ -478,6 +479,8 @@ function renderCards(d){
   const t = totals(d);
   const cards = [];
   cards.push(cardHTML('Total spend', money(t.cost), fmt(t.req) + ' requests · ' + fmt(t.tok) + ' tokens', getCSS('--accent'), null));
+  const todayTotal = Object.values(d.today || {}).reduce((a, b) => a + (Number(b) || 0), 0);
+  cards.push(cardHTML('Spent today', money(todayTotal), 'Since first reading today (UTC)', getCSS('--good'), null));
   for (const k of Object.keys(PROVIDERS)){
     const p = PROVIDERS[k], v = d[k];
     const badge = v.live ? '<span class="badge live">LIVE</span>' : '<span class="badge manual">MANUAL</span>';
@@ -676,13 +679,14 @@ async function refresh(){
     const r = await fetch('/api/usage');
     if (r.ok){
       const j = await r.json();
+      if (j.today) d.today = j.today;
       if (j.openrouter && typeof j.openrouter.cost === 'number'){
         d.openrouter.cost = j.openrouter.cost;
         d.openrouter.live = true;
         d.openrouter.series = spread(j.openrouter.cost);
-        d.updated = new Date().toISOString();
-        saveData(d);
       }
+      d.updated = new Date().toISOString();
+      saveData(d);
     }
   } catch(e){ /* keep existing values on failure */ }
   renderAll();

@@ -56,6 +56,7 @@ func main() {
 	mux.HandleFunc("/api/me", cfg.meHandler)
 	mux.HandleFunc("/api/settings", cfg.settingsHandler)
 	mux.HandleFunc("/api/usage", cfg.usageHandler)
+	mux.HandleFunc("/api/today", cfg.todayHandler)
 	mux.HandleFunc("/api/dbstatus", cfg.dbStatusHandler)
 	mux.HandleFunc("/healthz", func(w http.ResponseWriter, r *http.Request) { w.Write([]byte("ok")) })
 	mux.HandleFunc("/", staticHandler)
@@ -330,6 +331,7 @@ func (c config) usageHandler(w http.ResponseWriter, r *http.Request) {
 		if cached, age, ok := readCache(data, "openrouter", ttl); ok {
 			writeJSON(w, http.StatusOK, map[string]any{
 				"openrouter": cached, "cached": true, "ageSeconds": int(age.Seconds()),
+				"today": c.todaySpend(ctx, user),
 			})
 			return
 		}
@@ -356,11 +358,47 @@ func (c config) usageHandler(w http.ResponseWriter, r *http.Request) {
 			if serr := c.store.Set(ctx, user, data); serr != nil {
 				log.Printf("usage cache save failed: %v", serr)
 			}
+			// Record the cumulative reading into the daily_usage collection.
+			if _, derr := c.store.RecordDaily(ctx, user, today(), "openrouter", cost); derr != nil {
+				log.Printf("record daily failed: %v", derr)
+			}
 		}
 	} else {
 		out["openrouter"] = nil
 	}
+
+	// Attach today's spend (last - opening) per provider.
+	out["today"] = c.todaySpend(ctx, user)
 	writeJSON(w, http.StatusOK, out)
+}
+
+// todayHandler returns each provider's spend so far today.
+func (c config) todayHandler(w http.ResponseWriter, r *http.Request) {
+	user, ok := c.currentUser(r)
+	if !ok {
+		w.WriteHeader(http.StatusUnauthorized)
+		return
+	}
+	ctx, cancel := context.WithTimeout(r.Context(), 8*time.Second)
+	defer cancel()
+	writeJSON(w, http.StatusOK, map[string]any{"date": today(), "today": c.todaySpend(ctx, user)})
+}
+
+// today returns the current UTC date as YYYY-MM-DD.
+func today() string { return time.Now().UTC().Format("2006-01-02") }
+
+// todaySpend returns each provider's spend so far today (last reading - opening).
+func (c config) todaySpend(ctx context.Context, user string) map[string]float64 {
+	out := map[string]float64{}
+	entries, err := c.store.GetDaily(ctx, user, today())
+	if err != nil {
+		log.Printf("get daily failed: %v", err)
+		return out
+	}
+	for _, e := range entries {
+		out[e.Provider] = e.Last - e.Opening
+	}
+	return out
 }
 
 const defaultUsageCacheTTL = time.Hour
