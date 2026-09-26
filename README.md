@@ -1,6 +1,6 @@
 # LLM Usage Dashboard
 
-Track your **Gemini**, **Claude**, and **OpenRouter** usage in one visual dashboard.
+Track your **Gemini**, **Claude**, **OpenRouter**, **Grokbot**, **Cursor Agent**, and **DeepSeek 4.1** usage in one visual dashboard.
 Log in once and your spend, requests, and token charts are right there.
 
 🌐 **Live (Fly.io):** https://llm-usage-dashboard.fly.dev/
@@ -26,7 +26,7 @@ Log in once and your spend, requests, and token charts are right there.
 - 📊 **Visual dashboard** — summary cards, 14-day spend line chart, cost-share doughnut, and token bar chart (Chart.js).
 - ☁️ **Credentials stored in MongoDB Atlas** — your provider API keys and usage numbers persist server-side per user.
 - 🔄 **Live usage pull** — OpenRouter usage is fetched **server-side** (no browser CORS limits) using the key saved in Atlas.
-- ✍️ **Manual entry** for Claude & Gemini (their APIs require admin/cloud credentials and block direct browser calls).
+- ✍️ **Manual entry** for Claude, Gemini, Grokbot, Cursor Agent & DeepSeek (their APIs require admin/cloud credentials and block direct browser calls).
 
 ## Architecture
 
