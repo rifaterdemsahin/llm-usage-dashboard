@@ -17,6 +17,9 @@
     --claude: #d97757;
     --gemini: #4285f4;
     --openrouter: #9b6bff;
+    --grokbot: #ff6b35;
+    --cursor: #00d4ff;
+    --deepseek: #a855f7;
     --good: #3fb950;
     --warn: #d29922;
     --bad: #f85149;
@@ -167,7 +170,7 @@
   <div class="login-card">
     <div class="logo">📊</div>
     <h1>LLM Usage Dashboard</h1>
-    <p>Track your Gemini, Claude &amp; OpenRouter usage in one place.</p>
+    <p>Track your Gemini, Claude, OpenRouter, Grokbot, Cursor Agent &amp; DeepSeek usage in one place.</p>
     <label for="loginUser">Username</label>
     <input class="field" id="loginUser" placeholder="you@example.com" autocomplete="username" />
     <label for="loginPass">Password</label>
@@ -349,6 +352,33 @@
       <label>Tokens</label><input class="field num-in" id="gmTok" type="number" min="0" />
     </div>
 
+    <div class="prov-block">
+      <div class="head"><span class="dot" style="background:var(--grokbot)"></span> Grokbot <small>manual</small></div>
+      <div class="two">
+        <div><label>Cost ($)</label><input class="field num-in" id="gbCost" type="number" min="0" step="0.01" /></div>
+        <div><label>Requests</label><input class="field num-in" id="gbReq" type="number" min="0" /></div>
+      </div>
+      <label>Tokens</label><input class="field num-in" id="gbTok" type="number" min="0" />
+    </div>
+
+    <div class="prov-block">
+      <div class="head"><span class="dot" style="background:var(--cursor)"></span> Cursor Agent <small>manual</small></div>
+      <div class="two">
+        <div><label>Cost ($)</label><input class="field num-in" id="caCost" type="number" min="0" step="0.01" /></div>
+        <div><label>Requests</label><input class="field num-in" id="caReq" type="number" min="0" /></div>
+      </div>
+      <label>Tokens</label><input class="field num-in" id="caTok" type="number" min="0" />
+    </div>
+
+    <div class="prov-block">
+      <div class="head"><span class="dot" style="background:var(--deepseek)"></span> DeepSeek 4.1 <small>manual</small></div>
+      <div class="two">
+        <div><label>Cost ($)</label><input class="field num-in" id="dsCost" type="number" min="0" step="0.01" /></div>
+        <div><label>Requests</label><input class="field num-in" id="dsReq" type="number" min="0" /></div>
+      </div>
+      <label>Tokens</label><input class="field num-in" id="dsTok" type="number" min="0" />
+    </div>
+
     <div class="modal-actions">
       <button class="btn" id="saveSettings" style="margin-top:0;">Save</button>
       <button class="btn secondary" id="closeSettings" style="margin-top:0;">Cancel</button>
@@ -371,6 +401,9 @@ const PROVIDERS = {
   openrouter: { label: 'OpenRouter', color: getCSS('--openrouter') },
   claude:     { label: 'Claude',     color: getCSS('--claude') },
   gemini:     { label: 'Gemini',     color: getCSS('--gemini') },
+  grokbot:    { label: 'Grokbot',    color: getCSS('--grokbot') },
+  cursor:     { label: 'Cursor Agent', color: getCSS('--cursor') },
+  deepseek:   { label: 'DeepSeek 4.1', color: getCSS('--deepseek') },
 };
 
 function getCSS(v){ return getComputedStyle(document.documentElement).getPropertyValue(v).trim(); }
@@ -384,6 +417,9 @@ function emptyData(){
     openrouter: { cost: 0, requests: 0, tokens: 0, live: false, series: zeros() },
     claude:     { cost: 0, requests: 0, tokens: 0, live: false, series: zeros() },
     gemini:     { cost: 0, requests: 0, tokens: 0, live: false, series: zeros() },
+    grokbot:    { cost: 0, requests: 0, tokens: 0, live: false, series: zeros() },
+    cursor:     { cost: 0, requests: 0, tokens: 0, live: false, series: zeros() },
+    deepseek:   { cost: 0, requests: 0, tokens: 0, live: false, series: zeros() },
     keys: { openrouter: '' },
     today: {},
     updated: null,
@@ -598,6 +634,15 @@ function openSettings(){
   $('gmCost').value = d.gemini.cost || '';
   $('gmReq').value = d.gemini.requests || '';
   $('gmTok').value = d.gemini.tokens || '';
+  $('gbCost').value = d.grokbot.cost || '';
+  $('gbReq').value = d.grokbot.requests || '';
+  $('gbTok').value = d.grokbot.tokens || '';
+  $('caCost').value = d.cursor.cost || '';
+  $('caReq').value = d.cursor.requests || '';
+  $('caTok').value = d.cursor.tokens || '';
+  $('dsCost').value = d.deepseek.cost || '';
+  $('dsReq').value = d.deepseek.requests || '';
+  $('dsTok').value = d.deepseek.tokens || '';
   $('orStatus').textContent = '';
   $('modal').style.display = 'flex';
 }
@@ -612,11 +657,16 @@ function saveSettings(){
 
   d.claude.cost     = num('clCost'); d.claude.requests = num('clReq'); d.claude.tokens = num('clTok');
   d.gemini.cost     = num('gmCost'); d.gemini.requests = num('gmReq'); d.gemini.tokens = num('gmTok');
-  d.claude.live = false; d.gemini.live = false;
+  d.grokbot.cost    = num('gbCost'); d.grokbot.requests = num('gbReq'); d.grokbot.tokens = num('gbTok');
+  d.cursor.cost     = num('caCost'); d.cursor.requests = num('caReq'); d.cursor.tokens = num('caTok');
+  d.deepseek.cost   = num('dsCost'); d.deepseek.requests = num('dsReq'); d.deepseek.tokens = num('dsTok');
+  d.claude.live = false; d.gemini.live = false; d.grokbot.live = false; d.cursor.live = false; d.deepseek.live = false;
 
-  // keep a simple distributed series so charts look meaningful
   d.claude.series = spread(d.claude.cost);
   d.gemini.series = spread(d.gemini.cost);
+  d.grokbot.series = spread(d.grokbot.cost);
+  d.cursor.series = spread(d.cursor.cost);
+  d.deepseek.series = spread(d.deepseek.cost);
   d.openrouter.series = spread(d.openrouter.cost);
 
   d.updated = new Date().toISOString();
@@ -699,6 +749,9 @@ function loadDemo(){
   d.openrouter = { cost: 42.18, requests: 1280, tokens: 3_540_000, live: false, series: spread(42.18) };
   d.claude     = { cost: 88.40, requests: 940,  tokens: 5_120_000, live: false, series: spread(88.40) };
   d.gemini     = { cost: 19.75, requests: 2110, tokens: 6_800_000, live: false, series: spread(19.75) };
+  d.grokbot    = { cost: 15.30, requests: 650,  tokens: 2_340_000, live: false, series: spread(15.30) };
+  d.cursor     = { cost: 32.50, requests: 890,  tokens: 4_200_000, live: false, series: spread(32.50) };
+  d.deepseek   = { cost: 8.90,  requests: 1540, tokens: 7_650_000, live: false, series: spread(8.90) };
   d.updated = new Date().toISOString();
   saveData(d);
   closeSettings();

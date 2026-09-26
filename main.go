@@ -293,6 +293,9 @@ func (c config) seedFromVault(ctx context.Context, user string) {
 	seed("openrouter", "OPENROUTER_API_KEY")
 	seed("claude", "ANTHROPIC_API_KEY")
 	seed("gemini", "GEMINI_API_KEY")
+	seed("grokbot", "GROKBOT_API_KEY")
+	seed("cursor", "CURSOR_API_KEY")
+	seed("deepseek", "DEEPSEEK_API_KEY")
 	if changed {
 		if err := c.store.Set(ctx, user, data); err != nil {
 			log.Printf("seedFromVault save failed: %v", err)
