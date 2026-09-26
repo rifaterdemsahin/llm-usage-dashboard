@@ -1,0 +1,17 @@
+{
+  "name": "LLM Usage Dashboard",
+  "install": "go env -w GOTOOLCHAIN=go1.26.8 && go mod download && go build -o /tmp/llmdash .",
+  "terminals": [
+    {
+      "name": "dashboard",
+      "command": "DASH_USER=demo@example.com DASH_PASS=demo-pass SESSION_SECRET=dev-secret PORT=8080 go run .",
+      "description": "Runs the Go dashboard server on http://localhost:8080 with dev login demo@example.com / demo-pass. No MONGODB_URI is set, so it uses the in-memory store (data resets on restart). Set MONGODB_URI to use MongoDB Atlas."
+    }
+  ],
+  "ports": [
+    {
+      "name": "dashboard",
+      "port": 8080
+    }
+  ]
+}
